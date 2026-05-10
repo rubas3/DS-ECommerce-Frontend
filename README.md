@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ecommerce Frontend (Event-Driven Version with Kafka)
 
-## Getting Started
+This project is a Next.js ecommerce app using Firebase auth + MongoDB, now upgraded with a Kafka-based order workflow.
 
-First, run the development server:
+## What is implemented
+
+- Checkout creates an order with `PENDING_PAYMENT`.
+- Order API publishes `order.created` event to Kafka.
+- Kafka consumer processes payment and inventory update.
+- Order status transitions to `CONFIRMED` after inventory deduction.
+- Backend events are stored in MongoDB (`system_events`) for demo/debug visibility.
+
+## Event flow
+
+1. User clicks `Confirm Payment & Place Order`.
+2. `POST /api/orders/confirm`:
+   - creates order in MongoDB (`PENDING_PAYMENT`)
+   - publishes `order.created`
+3. Worker (`workers/order-payment-consumer.mjs`) consumes `order.created`:
+   - deducts stock from `products.stock`
+   - marks payment done (`PAYMENT_COMPLETED`) only after inventory succeeds
+   - marks order `CONFIRMED`
+   - clears user cart
+4. Worker publishes:
+   - `payment.completed`
+   - `inventory.deducted` (or `inventory.failed`)
+   - `order.confirmed`
+
+## Kafka setup with Docker
+
+`docker-compose.yml` contains:
+- `redpanda` (Kafka-compatible broker)
+- `redpanda-console` (UI for topics/messages)
+
+### Start Kafka
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker compose up -d
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Kafka Console
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open: [http://localhost:8080](http://localhost:8080)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project setup
 
-## Learn More
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Create `.env.local` from `.env.example` and fill values.
+3. Start Next.js app:
+   ```bash
+   npm run dev
+   ```
+4. Start Kafka consumer worker (new terminal):
+   ```bash
+   npm run kafka:consumer
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+## Environment variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Minimum Kafka/Mongo variables:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```env
+MONGODB_URI=mongodb://localhost:27017
+MONGODB_DB_NAME=ecommerce
+KAFKA_ENABLED=true
+KAFKA_BROKERS=localhost:19092
+KAFKA_CLIENT_ID=ecommerce-frontend
+DEFAULT_PRODUCT_STOCK=100
+```
 
-## Deploy on Vercel
+Firebase variables from your existing setup are still required for authentication.
+`DEFAULT_PRODUCT_STOCK` is used as a safe fallback for legacy product documents where `stock` does not exist yet.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## How to show backend processing in demo
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 1) Order status API
+
+`GET /api/orders/status?orderId=<id>`
+
+- returns `status`, `paymentStatus`, `inventoryStatus`
+- checkout page polls this API and shows live state
+
+### 2) Event log API
+
+`GET /api/debug/events?orderId=<id>`
+
+- returns recent Kafka-related lifecycle events for authenticated user
+- source collection: `system_events`
+
+### 3) Kafka topic visibility
+
+Use Redpanda Console (`localhost:8080`) to show:
+- topic list
+- produced messages
+- offsets/consumers
+
+## Useful scripts
+
+- `npm run dev` - start Next.js
+- `npm run kafka:consumer` - start order/payment/inventory consumer worker
+- `npm run lint` - run ESLint
+
+## Notes for university presentation
+
+- This is an event-driven architecture with asynchronous consistency.
+- Order confirmation is no longer immediate DB-only action.
+- Payment and inventory are processed by a Kafka consumer.
+- Event logs provide an explainable audit trail for each order lifecycle.

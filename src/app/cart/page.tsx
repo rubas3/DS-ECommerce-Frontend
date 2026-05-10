@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/src/lib/firebase";
+import { getApiUrl } from "@/src/lib/api-client";
 
 type CartItem = {
   _id: string;
@@ -27,8 +28,8 @@ export default function CartPage() {
   const loadCartForUser = async (user: User) => {
     try {
       setError("");
-      const idToken = await user.getIdToken(true);
-      const response = await fetch("/api/cart", {
+      const idToken = await user.getIdToken();
+      const response = await fetch(getApiUrl("/api/cart"), {
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
@@ -81,8 +82,8 @@ export default function CartPage() {
       setError("");
       setSuccess("");
       setIsSubmitting(true);
-      const idToken = await activeUser.getIdToken(true);
-      const response = await fetch("/api/cart", {
+      const idToken = await activeUser.getIdToken();
+      const response = await fetch(getApiUrl("/api/cart"), {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -116,9 +117,9 @@ export default function CartPage() {
       setError("");
       setSuccess("");
       setIsSubmitting(true);
-      const idToken = await activeUser.getIdToken(true);
+      const idToken = await activeUser.getIdToken();
       const response = await fetch(
-        `/api/cart?productId=${encodeURIComponent(productId)}`,
+        getApiUrl(`/api/cart?productId=${encodeURIComponent(productId)}`),
         {
           method: "DELETE",
           headers: {
@@ -137,47 +138,6 @@ export default function CartPage() {
         setError(caughtError.message);
       } else {
         setError("Unable to remove item.");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleConfirmOrder = async () => {
-    if (!activeUser || !items.length) {
-      return;
-    }
-
-    try {
-      setError("");
-      setSuccess("");
-      setIsSubmitting(true);
-      const idToken = await activeUser.getIdToken(true);
-      const response = await fetch("/api/orders/confirm", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
-      const payload = (await response.json()) as {
-        message?: string;
-        orderId?: string;
-      };
-      if (!response.ok) {
-        throw new Error(payload.message ?? "Failed to confirm order.");
-      }
-
-      setSuccess(
-        payload.orderId
-          ? `Order confirmed successfully. Order ID: ${payload.orderId}`
-          : "Order confirmed successfully."
-      );
-      await loadCartForUser(activeUser);
-    } catch (caughtError: unknown) {
-      if (caughtError instanceof Error) {
-        setError(caughtError.message);
-      } else {
-        setError("Unable to confirm order.");
       }
     } finally {
       setIsSubmitting(false);
@@ -315,10 +275,10 @@ export default function CartPage() {
               disabled={isSubmitting}
               className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
               onClick={() => {
-                void handleConfirmOrder();
+                router.push("/checkout");
               }}
             >
-              {isSubmitting ? "Processing..." : "Proceed to Payment / Confirm Order"}
+              Proceed to Payment
             </button>
           </div>
         ) : null}

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
+import { getApiUrl } from "@/src/lib/api-client";
 
 export default function Signin() {
   const router = useRouter();
@@ -40,9 +41,9 @@ export default function Signin() {
         email,
         password
       );
-      const idToken = await userCredential.user.getIdToken(true);
+      const idToken = await userCredential.user.getIdToken();
 
-      const syncResponse = await fetch("/api/users/sync-verification", {
+      const syncResponse = await fetch(getApiUrl("/api/users/sync-verification"), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -50,16 +51,6 @@ export default function Signin() {
       });
       if (!syncResponse.ok) {
         throw new Error("Could not sync verification status with database.");
-      }
-
-      const mongoSyncResponse = await fetch("/api/users/ensure-mongo", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
-      if (!mongoSyncResponse.ok) {
-        throw new Error("Could not sync user profile with MongoDB.");
       }
 
       if (!userCredential.user.emailVerified) {

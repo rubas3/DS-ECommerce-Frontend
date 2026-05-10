@@ -6,11 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "kafka:consumer": "node --env-file=.env.local ./workers/order-payment-consumer.mjs"
   },
   "dependencies": {
     "firebase": "^12.12.1",
     "firebase-admin": "^13.8.0",
+    "kafkajs": "^2.2.4",
     "mongodb": "^6.21.0",
     "next": "16.2.5",
     "react": "19.2.4",
