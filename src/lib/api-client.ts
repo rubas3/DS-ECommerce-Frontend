@@ -13,3 +13,17 @@ export function getApiUrl(path: string): string {
 
   return `${apiBaseUrl}${path}`;
 }
+
+export async function apiFetch(
+  path: string,
+  init: RequestInit = {}
+): Promise<Response> {
+  const url = getApiUrl(path);
+  const headers = new Headers(init.headers);
+
+  if (url.includes("ngrok")) {
+    headers.set("ngrok-skip-browser-warning", "true");
+  }
+
+  return fetch(url, { ...init, headers });
+}

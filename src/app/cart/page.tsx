@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/src/lib/firebase";
-import { getApiUrl } from "@/src/lib/api-client";
+import { apiFetch } from "@/src/lib/api-client";
 
 type CartItem = {
   _id: string;
@@ -29,7 +29,7 @@ export default function CartPage() {
     try {
       setError("");
       const idToken = await user.getIdToken();
-      const response = await fetch(getApiUrl("/api/cart"), {
+      const response = await apiFetch("/api/cart", {
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
@@ -83,7 +83,7 @@ export default function CartPage() {
       setSuccess("");
       setIsSubmitting(true);
       const idToken = await activeUser.getIdToken();
-      const response = await fetch(getApiUrl("/api/cart"), {
+      const response = await apiFetch("/api/cart", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -118,8 +118,8 @@ export default function CartPage() {
       setSuccess("");
       setIsSubmitting(true);
       const idToken = await activeUser.getIdToken();
-      const response = await fetch(
-        getApiUrl(`/api/cart?productId=${encodeURIComponent(productId)}`),
+      const response = await apiFetch(
+        `/api/cart?productId=${encodeURIComponent(productId)}`,
         {
           method: "DELETE",
           headers: {

@@ -1,12 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 
+function isAllowedOrigin(origin: string): boolean {
+  const allowedOrigins = (process.env.CORS_ALLOWED_ORIGIN || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (allowedOrigins.includes(origin)) {
+    return true;
+  }
+
+  return (
+    origin.endsWith(".vercel.app") ||
+    origin === "http://localhost:3000" ||
+    origin === "https://localhost:3000"
+  );
+}
+
 function buildCorsHeaders(request: NextRequest): HeadersInit {
   const requestOrigin = request.headers.get("origin");
   const configuredOrigin = process.env.CORS_ALLOWED_ORIGIN?.trim();
-  const allowOrigin =
-    configuredOrigin && configuredOrigin.length > 0
-      ? configuredOrigin
-      : requestOrigin ?? "*";
+
+  let allowOrigin = configuredOrigin || requestOrigin || "*";
+  if (requestOrigin && isAllowedOrigin(requestOrigin)) {
+    allowOrigin = requestOrigin;
+  }
 
   return {
     "Access-Control-Allow-Origin": allowOrigin,

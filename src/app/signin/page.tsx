@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
-import { getApiUrl } from "@/src/lib/api-client";
+import { apiFetch } from "@/src/lib/api-client";
 
 export default function Signin() {
   const router = useRouter();
@@ -43,7 +43,7 @@ export default function Signin() {
       );
       const idToken = await userCredential.user.getIdToken();
 
-      const syncResponse = await fetch(getApiUrl("/api/users/sync-verification"), {
+      const syncResponse = await apiFetch("/api/users/sync-verification", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${idToken}`,

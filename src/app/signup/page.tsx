@@ -5,7 +5,7 @@ import { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { sendEmailVerification } from "firebase/auth";
-import { getApiUrl } from "@/src/lib/api-client";
+import { apiFetch } from "@/src/lib/api-client";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -61,7 +61,7 @@ export default function Signup() {
       );
       const idToken = await userCredential.user.getIdToken();
 
-      const profileResponse = await fetch(getApiUrl("/api/users/upsert-profile"), {
+      const profileResponse = await apiFetch("/api/users/upsert-profile", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

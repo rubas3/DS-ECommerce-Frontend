@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/src/lib/firebase";
-import { getApiUrl } from "@/src/lib/api-client";
+import { apiFetch } from "@/src/lib/api-client";
 
 type Product = {
   _id: string;
@@ -43,7 +43,7 @@ export default function DashboardPage() {
     const loadProducts = async () => {
       try {
         setError("");
-        const response = await fetch(getApiUrl("/api/products"));
+        const response = await apiFetch("/api/products");
         const payload = (await response.json()) as {
           products?: Product[];
           message?: string;
@@ -80,7 +80,7 @@ export default function DashboardPage() {
 
       setAddingProductId(product._id);
       const idToken = await activeUser.getIdToken();
-      const response = await fetch(getApiUrl("/api/cart"), {
+      const response = await apiFetch("/api/cart", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

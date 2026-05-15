@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/src/lib/firebase";
-import { getApiUrl } from "@/src/lib/api-client";
+import { apiFetch } from "@/src/lib/api-client";
 
 type CartItem = {
   _id?: string;
@@ -36,7 +36,7 @@ export default function CheckoutPage() {
     try {
       setError("");
       const idToken = await user.getIdToken();
-      const response = await fetch(getApiUrl("/api/cart"), {
+      const response = await apiFetch("/api/cart", {
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
@@ -84,12 +84,12 @@ export default function CheckoutPage() {
     const pollOrderStatus = async () => {
       try {
         const idToken = await activeUser.getIdToken();
-        const response = await fetch(
-          getApiUrl(`/api/orders/status?orderId=${placedOrderId}`),
+        const response = await apiFetch(
+          `/api/orders/status?orderId=${placedOrderId}`,
           {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
           }
         );
         const payload = (await response.json()) as {
@@ -146,7 +146,7 @@ export default function CheckoutPage() {
       setIsSubmitting(true);
 
       const idToken = await activeUser.getIdToken();
-      const response = await fetch(getApiUrl("/api/orders/confirm"), {
+      const response = await apiFetch("/api/orders/confirm", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${idToken}`,
