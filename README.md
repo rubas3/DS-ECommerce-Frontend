@@ -47,6 +47,17 @@ docker compose up -d --build
 The web application will be available at [http://localhost:3000](http://localhost:3000)
 The Kafka Console will be available at [http://localhost:8080](http://localhost:8080)
 
+### Connect Vercel Frontend to Local Docker Backend (Ngrok)
+
+If you are using the Vercel-deployed frontend and want it to communicate with your local Docker containers:
+1. Start your Docker backend: `docker compose up -d`
+2. Open a terminal and start an ngrok tunnel to port 3000:
+   ```bash
+   ngrok http 3000
+   ```
+3. Copy the secure `https://...` URL provided by ngrok.
+4. Update your Vercel project's Environment Variables setting `NEXT_PUBLIC_API_BASE_URL` to the new ngrok URL and redeploy/refresh.
+
 ### Manual Local Setup (Alternative)
 
 If you prefer to run the Next.js app natively on your machine without Docker:

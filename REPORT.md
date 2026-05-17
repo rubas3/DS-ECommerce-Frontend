@@ -185,9 +185,10 @@ Rationale:
 - local Kafka is required for the assignment demonstration setup
 - frontend remains publicly accessible while backend/event processing stays controllable in local environment
 
-Frontend runtime note:
+Frontend runtime and tunnel setup:
 
-- frontend uses `NEXT_PUBLIC_API_BASE_URL` to call backend endpoints
+- To bridge the gap between Vercel and the local Docker environment, an `ngrok` tunnel is used (`ngrok http 3000`).
+- The Vercel frontend uses the `NEXT_PUBLIC_API_BASE_URL` environment variable pointing to the ngrok URL to call backend endpoints.
 - if this env var is empty, frontend falls back to same-origin `/api/*`
 - if set, frontend calls `${NEXT_PUBLIC_API_BASE_URL}/api/*`
 
