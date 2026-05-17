@@ -29,7 +29,7 @@ function buildCorsHeaders(request: NextRequest): HeadersInit {
   return {
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, ngrok-skip-browser-warning",
     "Access-Control-Max-Age": "86400",
   };
 }
