@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { auth } from "@/src/lib/firebase";
 import { apiFetch } from "@/src/lib/api-client";
 
@@ -114,6 +114,15 @@ export default function DashboardPage() {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      router.push("/signin");
+    } catch (error) {
+      console.error("Failed to sign out", error);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 px-4 py-12 text-white">
@@ -130,12 +139,20 @@ export default function DashboardPage() {
               shopping experience.
             </p>
           </div>
-          <Link
-            href="/cart"
-            className="inline-flex w-fit items-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
-          >
-            View Cart
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/cart"
+              className="inline-flex w-fit items-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+            >
+              View Cart
+            </Link>
+            <button
+              onClick={handleSignOut}
+              className="inline-flex w-fit items-center rounded-xl border border-slate-600 bg-transparent px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-white"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
       </section>
 

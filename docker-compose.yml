@@ -1,0 +1,53 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce-web
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    depends_on:
+      - redpanda
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce-worker
+    # Override the default command to start the worker
+    command: ["node", "./workers/order-payment-consumer.mjs"]
+    env_file:
+      - .env.local
+    depends_on:
+      - redpanda
+      - web
+
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.1.10
+    container_name: ecommerce-redpanda
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp=1
+      - --memory=1G
+      - --reserve-memory=0M
+      - --check=false
+      - --node-id=0
+      - --kafka-addr=PLAINTEXT://0.0.0.0:9092,OUTSIDE://0.0.0.0:19092
+      - --advertise-kafka-addr=PLAINTEXT://redpanda:9092,OUTSIDE://localhost:19092
+    ports:
+      - "19092:19092"
+      - "9644:9644"
+
+  redpanda-console:
+    image: docker.redpanda.com/redpandadata/console:v2.7.2
+    container_name: ecommerce-kafka-console
+    depends_on:
+      - redpanda
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+    ports:
+      - "8080:8080"

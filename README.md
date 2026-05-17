@@ -26,29 +26,38 @@ This project is a Next.js ecommerce app using Firebase auth + MongoDB, now upgra
    - `inventory.deducted` (or `inventory.failed`)
    - `order.confirmed`
 
-## Kafka setup with Docker
+## Full Docker Containerization
+
+The entire backend infrastructure, including the Next.js web application, Kafka (Redpanda), and the background worker, are fully containerized using Docker.
 
 `docker-compose.yml` contains:
+- `web` (Next.js frontend and API routes)
+- `worker` (Background process for order/payment/inventory consumer)
 - `redpanda` (Kafka-compatible broker)
 - `redpanda-console` (UI for topics/messages)
 
-### Start Kafka
+### Start Everything (Recommended)
 
+1. Create `.env.local` from `.env.example` and fill in your MongoDB and Firebase values.
+2. Start the entire application stack:
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
-### Kafka Console
+The web application will be available at [http://localhost:3000](http://localhost:3000)
+The Kafka Console will be available at [http://localhost:8080](http://localhost:8080)
 
-Open: [http://localhost:8080](http://localhost:8080)
+### Manual Local Setup (Alternative)
 
-## Project setup
-
-1. Install dependencies:
+If you prefer to run the Next.js app natively on your machine without Docker:
+1. Start only Kafka:
+   ```bash
+   docker compose up -d redpanda redpanda-console
+   ```
+2. Install dependencies:
    ```bash
    npm install
    ```
-2. Create `.env.local` from `.env.example` and fill values.
 3. Start Next.js app:
    ```bash
    npm run dev
