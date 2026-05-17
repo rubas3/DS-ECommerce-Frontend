@@ -24,7 +24,7 @@ export async function requireAuthenticatedUser(
   }
 
   const { adminAuth } = getFirebaseAdmin();
-  const decoded = await adminAuth.verifyIdToken(token, true);
+  const decoded = await adminAuth.verifyIdToken(token);
 
   return {
     uid: decoded.uid,
