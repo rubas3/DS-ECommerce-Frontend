@@ -38,10 +38,6 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# We also need to copy the workers directory and system environment files for the Kafka consumer
-COPY --from=builder --chown=nextjs:nodejs /app/workers ./workers
-# Note: In production, environment variables should be passed to the container runtime
-# instead of using .env.local file directly.
 
 USER nextjs
 
@@ -52,3 +48,23 @@ ENV PORT=3000
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
 CMD ["node", "server.js"]
+
+# Separate worker image
+FROM base AS worker
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy dependencies specifically for the worker
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev
+
+# Copy worker files
+COPY --chown=nextjs:nodejs ./workers ./workers
+
+USER nextjs
+
+CMD ["node", "./workers/order-payment-consumer.mjs"]
