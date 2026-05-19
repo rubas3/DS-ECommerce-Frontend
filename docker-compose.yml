@@ -9,6 +9,8 @@ services:
       - "3000:3000"
     env_file:
       - .env.local
+    environment:
+      - KAFKA_BROKERS=redpanda:9092
     depends_on:
       - redpanda
 
@@ -22,6 +24,8 @@ services:
     command: ["node", "./workers/order-payment-consumer.mjs"]
     env_file:
       - .env.local
+    environment:
+      - KAFKA_BROKERS=redpanda:9092
     depends_on:
       - redpanda
       - web
